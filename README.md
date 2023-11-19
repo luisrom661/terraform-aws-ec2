@@ -2,7 +2,7 @@
 
 ## Descripción
 
-Este proyecto crea una instancia de AWS EC2 con Terraform y se conecta a ella con SSH para manejar Ubuntu en la consola.
+Este proyecto crea una instancia de AWS EC2 con Terraform y se conecta a ella con SSH para manejar Ubuntu en la consola. Para comprobar su efectividad se crea un archivo de configuración para instalar Docker y Docker Compose con Ansible.
 
 ## Requisitos
 
@@ -11,6 +11,10 @@ Este proyecto crea una instancia de AWS EC2 con Terraform y se conecta a ella co
 3. Ansible
 
 ## Configuración
+
+1. Crear un archivo `terraform.tfvars` con las variables de AWS.
+   1. `aws_access_key` y `aws_secret_key` son las credenciales de AWS.
+2. En el resource `null_resource` establecer la ruta del archivo `ansible-playbook` en el `provisioner` de Terraform.
 
 ## Variables
 

@@ -1,6 +1,6 @@
 ---
 - name: Install Docker on Ubuntu Server
-  hosts: ec2_instances
+  hosts: ubuntu
   become: yes
 
   tasks:
