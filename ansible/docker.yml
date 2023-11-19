@@ -1,0 +1,21 @@
+---
+- name: Install Docker on Ubuntu Server
+  hosts: ec2_instances
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+    
+    - name: Install Docker dependencies
+      apt:
+        name: 
+          - docker.io
+          - python3-pip
+        state: present
+
+    - name: Install Docker Compose
+      shell: >
+        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose &&
+        chmod +x /usr/local/bin/docker-compose

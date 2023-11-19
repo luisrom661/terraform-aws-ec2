@@ -42,6 +42,10 @@ resource "aws_key_pair" "key_pair" {
 resource "local_file" "private_key" {
   content  = tls_private_key.rsa-4096.private_key_pem
   filename = var.aws_key_name
+
+  provisioner "local-exec" {
+    command = "chmod 400 ${var.aws_key_name}"
+  }
 }
 
 # To create a EC2 instance
@@ -51,14 +55,53 @@ resource "aws_instance" "public_instance" {
   key_name               = aws_key_pair.key_pair.key_name # Cambia esto por el nombre de tu par de claves
   vpc_security_group_ids = [aws_security_group.sg_ec2.id] # Cambia esto por el ID de tu grupo de seguridad
   tags = {
-    Name = "one-piece-server"
+    Name = "public_instance"
   }
 
-  # provisioner "local-exec" {
-  #   command = "ansible-playbook -i '${aws_instance.public_instance.public_ip},' --user ubuntu --private-key=/Users/LUIS/Documents/Proyectos_Personales/One-Piece-API/terraform/${var.aws_key_name} /Users/LUIS/Documents/Proyectos_Personales/One-Piece-API/utils/ansible/docker-install.yml"
-  # }
+  root_block_device {
+	  volume_size = 30
+	  volume_type = "gp2"
+  }
+
+  provisioner "local-exec" {
+    command = "touch dynamic_inventory.ini"
+  }
+
+  provisioner "remote-exec" {
+    inline = [ "echo 'EC2 Instance is Ready!.'" ]
+  }
+
+  connection {
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "ubuntu"
+    private_key = tls_private_key.rsa-4096.private_key_pem
+  }
 }
 
-# resource "aws_s3_bucket" "one_piece_bucket" {
-#   bucket = var.aws_s3_bucket_name  # Cambia esto por el nombre que desees
-# }
+data "template_file" "inventory" {
+  template = <<-EOT
+    [ubuntu]
+    ${aws_instance.public_instance.public_ip} ansible_user=ubuntu ansible_ssh_private_key_file=${path.module}/${var.aws_key_name}
+  EOT
+}
+
+resource "local_file" "dynamic_inventory" {
+  depends_on = [ aws_instance.public_instance ]
+
+  filename   = "dynamic_inventory.ini"
+  content    = data.template_file.inventory.rendered
+
+  provisioner "local-exec" {
+    command = "chmod 400 ${local_file.dynamic_inventory.filename}"
+  }
+}
+
+resource "null_resource" "run_ansible" {
+  depends_on = [ local_file.dynamic_inventory ]
+
+  provisioner "local-exec" {
+    command = "ansible-playbook -i dynamic_inventory.ini playbook.yml"
+    working_dir = path.module
+  }
+}
