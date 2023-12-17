@@ -1,5 +1,7 @@
 # Terraform AWS EC2 Ubuntu 
 
+![terraformawsec2](/img/configuración_para_terraform_para_aws_ec2.jpg)
+
 ## Descripción
 
 Este proyecto crea una instancia de AWS EC2 con Terraform y se conecta a ella con SSH para manejar Ubuntu en la consola. Para comprobar su efectividad se crea un archivo de configuración para instalar Docker y Docker Compose con Ansible.
